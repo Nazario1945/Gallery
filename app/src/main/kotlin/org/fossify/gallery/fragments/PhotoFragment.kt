@@ -49,8 +49,6 @@ import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.github.penfeizhou.animation.apng.APNGDrawable
 import com.github.penfeizhou.animation.avif.AVIFDrawable
 import com.github.penfeizhou.animation.webp.WebPDrawable
-import com.squareup.picasso.Callback
-import com.squareup.picasso.Picasso
 import it.sephiroth.android.library.exif2.ExifInterface
 import org.apache.sanselan.common.byteSources.ByteSourceInputStream
 import org.apache.sanselan.formats.jpeg.JpegImageParser
@@ -526,9 +524,6 @@ class PhotoFragment : ViewPagerFragment() {
             .listener(object : RequestListener<Drawable> {
                 override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                     resetColorModeIfVisible()
-                    if (activity != null && !activity!!.isDestroyed && !activity!!.isFinishing) {
-                        tryLoadingWithPicasso(addZoomableView)
-                    }
                     return false
                 }
 
@@ -550,51 +545,7 @@ class PhotoFragment : ViewPagerFragment() {
             }).into(binding.gesturesView)
     }
 
-    private fun tryLoadingWithPicasso(addZoomableView: Boolean) {
-        var pathToLoad = if (getFilePathToShow().startsWith("content://")) getFilePathToShow() else "file://${getFilePathToShow()}"
-        pathToLoad = pathToLoad.replace("%", "%25").replace("#", "%23")
 
-        try {
-            val picasso = Picasso.get()
-                .load(pathToLoad)
-                .centerInside()
-                .stableKey(mMedium.getSignature())
-                .resize(mScreenWidth, mScreenHeight)
-
-            if (mCurrentRotationDegrees != 0) {
-                picasso.rotate(mCurrentRotationDegrees.toFloat())
-            } else {
-                degreesForRotation(mImageOrientation).toFloat()
-            }
-
-            picasso.into(binding.gesturesView, object : Callback {
-                override fun onSuccess() {
-                    applyProperColorMode(binding.gesturesView.drawable)
-                    binding.gesturesView.controller.settings.isZoomEnabled =
-                        mMedium.isRaw() || mCurrentRotationDegrees != 0 || context?.config?.allowZoomingImages == false
-                    if (mIsFragmentVisible && addZoomableView) {
-                        scheduleZoomableView()
-                    }
-                }
-
-                override fun onError(e: Exception?) {
-                    resetColorModeIfVisible()
-                    if (mMedium.path != mOriginalPath) {
-                        mMedium.path = mOriginalPath
-                        loadImage()
-                        // TODO: Implement panorama using a FOSS library
-                        // checkIfPanorama()
-                    } else {
-                        binding.errorMessageHolder.errorMessage.apply {
-                            setTextColor(if (context.config.blackBackground) Color.WHITE else context.getProperTextColor())
-                            fadeIn()
-                        }
-                    }
-                }
-            })
-        } catch (ignored: Exception) {
-        }
-    }
 
     private fun setupGesturesViewStateListener() {
         binding.gesturesView.controller.addOnStateChangeListener(object : GestureController.OnStateChangeListener {

@@ -34,7 +34,6 @@ sanselan = "0.97-incubator"
 media3Exoplayer = "1.10.1"
 okhttp = "5.3.2"
 okio = "3.17.0"
-picasso = "2.71828"
 subsamplingScaleImageView = "d705c3c4ad"
 #build
 app-build-compileSDKVersion = "36"
@@ -75,7 +74,6 @@ awebp = { module = "com.github.penfeizhou.android.animation:awebp", version.ref 
 avif = { module = "com.github.penfeizhou.android.animation:avif", version.ref = "animationAndroid" }
 glide-compiler = { module = "com.github.bumptech.glide:ksp", version.ref = "glideCompiler" }
 zjupure-webpdecoder = { module = "com.github.zjupure:webpdecoder", version.ref = "zjupureWebpdecoder" }
-picasso = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
 avif-integration = { group = "com.github.bumptech.glide", name = "avif-integration", version.ref = "glideCompiler" }
 jxl-integration = { group = "io.github.awxkee", name = "jxl-coder-glide", version.ref = "jxlDecoder" }
 [bundles]

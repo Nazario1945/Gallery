@@ -34,7 +34,6 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
-import com.squareup.picasso.Picasso
 import org.fossify.commons.extensions.doesThisOrParentHaveNoMedia
 import org.fossify.commons.extensions.getDocumentFile
 import org.fossify.commons.extensions.getDoesFilePathExist
@@ -91,7 +90,6 @@ import org.fossify.gallery.helpers.LOCATION_OTG
 import org.fossify.gallery.helpers.LOCATION_SD
 import org.fossify.gallery.helpers.MediaFetcher
 import org.fossify.gallery.helpers.MyWidgetProvider
-import org.fossify.gallery.helpers.PicassoRoundedCornersTransformation
 import org.fossify.gallery.helpers.RECYCLE_BIN
 import org.fossify.gallery.helpers.ROUNDED_CORNERS_NONE
 import org.fossify.gallery.helpers.ROUNDED_CORNERS_SMALL
@@ -630,7 +628,6 @@ fun Context.loadImage(
             signature = signature,
             skipMemoryCacheAtPaths = skipMemoryCacheAtPaths,
             animate = animateGifs,
-            tryLoadingWithPicasso = type == TYPE_IMAGES && path.isPng(),
             onError = onError
         )
     }
@@ -678,7 +675,6 @@ fun Context.loadImageBase(
     signature: ObjectKey,
     skipMemoryCacheAtPaths: ArrayList<String>? = null,
     animate: Boolean = false,
-    tryLoadingWithPicasso: Boolean = false,
     crossFadeDuration: Int = THUMBNAIL_FADE_DURATION_MS,
     onError: (() -> Unit)? = null
 ) {
@@ -739,11 +735,7 @@ fun Context.loadImageBase(
             targetBitmap: Target<Drawable>,
             isFirstResource: Boolean
         ): Boolean {
-            if (tryLoadingWithPicasso) {
-                tryLoadingWithPicasso(path, target, cropThumbnails, roundCorners, signature)
-            } else {
-                onError?.invoke()
-            }
+            onError?.invoke()
 
             return true
         }
@@ -795,39 +787,7 @@ fun Context.loadSVG(
     builder.into(target)
 }
 
-// intended mostly for Android 11 issues, that fail loading PNG files bigger than 10 MB
-fun Context.tryLoadingWithPicasso(
-    path: String,
-    view: MySquareImageView,
-    cropThumbnails: Boolean,
-    roundCorners: Int,
-    signature: ObjectKey
-) {
-    var pathToLoad = "file://$path"
-    pathToLoad = pathToLoad.replace("%", "%25").replace("#", "%23")
 
-    try {
-        var builder = Picasso.get()
-            .load(pathToLoad)
-            .stableKey(signature.toString())
-
-        builder = if (cropThumbnails) {
-            builder.centerCrop().fit()
-        } else {
-            builder.centerInside()
-        }
-
-        if (roundCorners != ROUNDED_CORNERS_NONE) {
-            val cornerSize =
-                if (roundCorners == ROUNDED_CORNERS_SMALL) org.fossify.commons.R.dimen.rounded_corner_radius_small else org.fossify.commons.R.dimen.rounded_corner_radius_big
-            val cornerRadius = resources.getDimension(cornerSize).toInt()
-            builder = builder.transform(PicassoRoundedCornersTransformation(cornerRadius.toFloat()))
-        }
-
-        builder.into(view)
-    } catch (e: Exception) {
-    }
-}
 
 fun Context.getCachedDirectories(
     getVideosOnly: Boolean = false,
