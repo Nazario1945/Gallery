@@ -92,10 +92,10 @@ android {
 
     splits {
         abi {
-            isEnable = abiSplits
+            isEnable = true
             reset()
-            include(*abiCodes.keys.toTypedArray())
-            isUniversalApk = true
+            include("armeabi-v7a")
+            isUniversalApk = false
         }
     }
 
@@ -117,6 +117,7 @@ android {
     androidResources {
         @Suppress("UnstableApiUsage")
         generateLocaleConfig = true
+        localeFilters += listOf("es", "en")
     }
 
     tasks.withType<KotlinCompile> {
