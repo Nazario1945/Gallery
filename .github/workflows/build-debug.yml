@@ -1,6 +1,8 @@
 name: Build Debug APK
 
 on:
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -19,7 +21,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Build debug APK
+      - name: Build Debug APK
         run: ./gradlew :app:assembleFossDebug
 
       - name: Upload APK
