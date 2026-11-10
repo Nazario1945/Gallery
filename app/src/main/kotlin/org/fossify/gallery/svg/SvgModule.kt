@@ -16,16 +16,13 @@ import java.io.InputStream
 
 @GlideModule
 class SvgModule : AppGlideModule() {
+    @Suppress("MagicNumber")
     override fun applyOptions(context: Context, builder: GlideBuilder) {
-        val calculator = MemorySizeCalculator.Builder(context)
-            .setMemoryCacheScreens(1f)
-            .setBitmapPoolScreens(0.5f)
-            .build()
-        builder.setMemoryCache(LruResourceCache(calculator.memoryCacheSize.toLong()))
-        builder.setBitmapPool(
-            com.bumptech.glide.load.engine.cache.LruBitmapPool(
-                calculator.bitmapPoolSize.toLong()
-            )
+        builder.setMemorySizeCalculator(
+            MemorySizeCalculator.Builder(context)
+                .setMemoryCacheScreens(1f)
+                .setBitmapPoolScreens(1f)
+                .build()
         )
     }
 
