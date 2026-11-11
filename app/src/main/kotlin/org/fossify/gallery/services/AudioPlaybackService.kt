@@ -32,8 +32,10 @@ class AudioPlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         player = PlayerHolder.player
+        // Forzar notificación en foreground SIEMPRE
+        startForeground(NOTIF_ID, minimalNotification(), FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+
         if (player == null) {
-            startForeground(NOTIF_ID, minimalNotification(), FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
             stopSelf()
             return
         }
@@ -77,6 +79,7 @@ class AudioPlaybackService : MediaSessionService() {
 
     override fun onDestroy() {
         handler.removeCallbacks(pauseTimeoutRunnable)
+        stopForeground(true)
         mediaSession?.release()
         mediaSession = null
         if (PlayerHolder.backgroundMode) {
