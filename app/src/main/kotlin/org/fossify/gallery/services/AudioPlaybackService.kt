@@ -53,17 +53,17 @@ class AudioPlaybackService : MediaSessionService() {
             clearVideoSurface()
         }
 
-        mediaSession = MediaSession.Builder(this, player!!)
-            .setCallback(object : MediaSession.Callback {
-                override fun onPlaybackStateChanged(session: MediaSession, state: Int) {
-                    if (state == Player.STATE_ENDED) stopSelf()
-                }
-                override fun onIsPlayingChanged(session: MediaSession, isPlaying: Boolean) {
-                    if (isPlaying) handler.removeCallbacks(pauseTimeoutRunnable)
-                    else handler.postDelayed(pauseTimeoutRunnable, PAUSE_TIMEOUT_MS)
-                }
-            })
-            .build()
+        mediaSession = MediaSession.Builder(this, player!!).build()
+
+        player?.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_ENDED) stopSelf()
+            }
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isPlaying) handler.removeCallbacks(pauseTimeoutRunnable)
+                else handler.postDelayed(pauseTimeoutRunnable, PAUSE_TIMEOUT_MS)
+            }
+        })
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
@@ -98,7 +98,7 @@ class AudioPlaybackService : MediaSessionService() {
             }
         }
         return NotificationCompat.Builder(this, chId)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(getString(R.string.app_name))
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
