@@ -366,6 +366,13 @@ class VideoFragment : ViewPagerFragment(), TextureView.SurfaceTextureListener,
 
     override fun onResume() {
         super.onResume()
+        if (org.fossify.gallery.helpers.PlayerHolder.backgroundMode) {
+            org.fossify.gallery.helpers.PlayerHolder.exitBackground()
+            requireContext().stopService(android.content.Intent(requireContext(), org.fossify.gallery.services.AudioPlaybackService::class.java))
+            if (org.fossify.gallery.helpers.PlayerHolder.player !== mExoPlayer) {
+                mExoPlayer = null
+            }
+        }
         mConfig =
             requireContext().config      // make sure we get a new config, in case the user changed something in the app settings
         requireActivity().updateTextColors(binding.videoHolder)
@@ -384,7 +391,18 @@ class VideoFragment : ViewPagerFragment(), TextureView.SurfaceTextureListener,
     override fun onPause() {
         super.onPause()
         storeStateVariables()
-        pauseVideo()
+        val playing = mExoPlayer?.playWhenReady == true && mExoPlayer?.playbackState != androidx.media3.common.Player.STATE_ENDED
+        if (playing && activity?.isFinishing == false && activity?.isChangingConfigurations == false) {
+            mExoPlayer?.let { org.fossify.gallery.helpers.PlayerHolder.attach(it) }
+            org.fossify.gallery.helpers.PlayerHolder.enterBackground()
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                requireContext().startForegroundService(android.content.Intent(requireContext(), org.fossify.gallery.services.AudioPlaybackService::class.java))
+            } else {
+                requireContext().startService(android.content.Intent(requireContext(), org.fossify.gallery.services.AudioPlaybackService::class.java))
+            }
+        } else {
+            pauseVideo()
+        }
         if (mStoredRememberLastVideoPosition && mIsFragmentVisible && mWasVideoStarted) {
             saveVideoProgress()
         }
@@ -511,7 +529,7 @@ class VideoFragment : ViewPagerFragment(), TextureView.SurfaceTextureListener,
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
 
-        mExoPlayer = ExoPlayer.Builder(requireContext())
+        mExoPlayer = ExoPlayer.Builder(requireContext().applicationContext)
             .setMediaSourceFactory(DefaultMediaSourceFactory(requireContext()))
             .setSeekParameters(SeekParameters.EXACT)
             .setLoadControl(loadControl)
@@ -924,8 +942,10 @@ class VideoFragment : ViewPagerFragment(), TextureView.SurfaceTextureListener,
     }
 
     private fun cleanup() {
-        pauseVideo()
-        releaseExoPlayer()
+        if (!org.fossify.gallery.helpers.PlayerHolder.shouldSkipRelease(mExoPlayer)) {
+            pauseVideo()
+            releaseExoPlayer()
+        }
 
         if (mWasFragmentInit) {
             mCurrTimeView.text = 0.getFormattedDuration()

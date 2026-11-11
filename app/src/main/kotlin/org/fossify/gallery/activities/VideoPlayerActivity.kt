@@ -182,8 +182,18 @@ open class VideoPlayerActivity : BaseViewerActivity(), SeekBar.OnSeekBarChangeLi
 
     override fun onPause() {
         super.onPause()
-        pauseVideo()
-
+        val playing = mExoPlayer?.playWhenReady == true && mExoPlayer?.playbackState != androidx.media3.common.Player.STATE_ENDED
+        if (playing && !isFinishing && !isChangingConfigurations) {
+            mExoPlayer?.let { org.fossify.gallery.helpers.PlayerHolder.attach(it) }
+            org.fossify.gallery.helpers.PlayerHolder.enterBackground()
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                startForegroundService(android.content.Intent(this, org.fossify.gallery.services.AudioPlaybackService::class.java))
+            } else {
+                startService(android.content.Intent(this, org.fossify.gallery.services.AudioPlaybackService::class.java))
+            }
+        } else {
+            pauseVideo()
+        }
         if (config.rememberLastVideoPosition && mWasVideoStarted) {
             saveVideoProgress()
         }
@@ -192,9 +202,11 @@ open class VideoPlayerActivity : BaseViewerActivity(), SeekBar.OnSeekBarChangeLi
     override fun onDestroy() {
         super.onDestroy()
         if (!isChangingConfigurations) {
-            pauseVideo()
+            if (!org.fossify.gallery.helpers.PlayerHolder.shouldSkipRelease(mExoPlayer)) {
+                pauseVideo()
+                releaseExoPlayer()
+            }
             binding.bottomVideoTimeHolder.videoCurrTime.text = 0.getFormattedDuration()
-            releaseExoPlayer()
             binding.bottomVideoTimeHolder.videoSeekbar.progress = 0
             mTimerHandler.removeCallbacksAndMessages(null)
             mPlayWhenReadyHandler.removeCallbacksAndMessages(null)
@@ -390,7 +402,7 @@ open class VideoPlayerActivity : BaseViewerActivity(), SeekBar.OnSeekBarChangeLi
             .setPrioritizeTimeOverSizeThresholds(true)
             .build()
 
-        mExoPlayer = ExoPlayer.Builder(this)
+        mExoPlayer = ExoPlayer.Builder(applicationContext)
             .setMediaSourceFactory(DefaultMediaSourceFactory(applicationContext))
             .setSeekParameters(SeekParameters.EXACT)
             .setLoadControl(loadControl)
