@@ -418,7 +418,7 @@ class Config(context: Context) : BaseConfig(context) {
         set(groupBy) = prefs.edit().putInt(GROUP_BY, groupBy).apply()
 
     var useRecycleBin: Boolean
-        get() = prefs.getBoolean(USE_RECYCLE_BIN, true)
+        get() = prefs.getBoolean(USE_RECYCLE_BIN, false)
         set(useRecycleBin) = prefs.edit().putBoolean(USE_RECYCLE_BIN, useRecycleBin).apply()
 
     var bottomActions: Boolean

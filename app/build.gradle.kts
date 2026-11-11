@@ -196,7 +196,6 @@ dependencies {
     implementation(libs.avif.integration)
     implementation(libs.jxl.integration)
     implementation(libs.okio)
-    compileOnly(libs.okhttp)
 
     ksp(libs.glide.compiler)
     implementation(libs.zjupure.webpdecoder)
